@@ -1,0 +1,18 @@
+<section class="remote-slot">
+  <h3>Host Component via Selector (Single Input/Output Contract)</h3>
+
+  <label for="msg">Message</label>
+  <input id="msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="tag">Tag</label>
+  <input id="tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+  </div>
+
+  <app-host-io-demo [input]="demoInput" (output)="onRemoteOutput($event)"></app-host-io-demo>
+
+  <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
+</section>

@@ -1,0 +1,13 @@
+<div class="card">
+  <h2>Remote: MFE 2</h2>
+  <p>This component is loaded from <strong>http://localhost:4202</strong>.</p>
+
+  <p>Input type: <strong>{{ input.type }}</strong></p>
+  <p>Input message: <strong>{{ input.payload.message }}</strong></p>
+  <p>Input tag: <strong>{{ input.payload.tag }}</strong></p>
+
+  <button type="button" (click)="sendAcknowledgement()">Emit output: acknowledged</button>
+
+  <p>Counter: <strong>{{ counter }}</strong></p>
+  <button type="button" (click)="increaseCounter()">Emit output: counter-changed</button>
+</div>

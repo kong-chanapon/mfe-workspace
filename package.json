@@ -1,0 +1,28 @@
+{
+  "name": "mfe-workspace",
+  "version": "0.0.0",
+  "scripts": {
+    "start:host": "npm --prefix angular-host run start",
+    "start:mfe1": "npm --prefix angular-mfe run start:mfe1",
+    "start:mfe2": "npm --prefix angular-mfe run start:mfe2",
+    "start:react": "npm --prefix react-mfe run start",
+    "start:react-window": "npm --prefix react-mfe run start:window",
+    "start:vue": "npm --prefix vue-mfe run start",
+    "start:all": "concurrently -k \"npm run start:mfe1\" \"npm run start:mfe2\" \"npm run start:react\" \"npm run start:react-window\" \"npm run start:vue\" \"npm run start:host\"",
+    "build:host": "npm --prefix angular-host run build",
+    "build:mfe1": "npm --prefix angular-mfe run build:mfe1",
+    "build:mfe2": "npm --prefix angular-mfe run build:mfe2",
+    "build:react": "npm --prefix react-mfe run build",
+    "build:react-window": "npm --prefix react-mfe run build:window",
+    "build:vue": "npm --prefix vue-mfe run build",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down"
+  },
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.8.1"
+  }
+}

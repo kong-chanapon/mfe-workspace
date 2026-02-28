@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.remote-slot {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f9fafb;
+  min-height: 180px;
+}
+
+.state {
+  margin: 0;
+  color: #4b5563;
+}
+
+label {
+  display: block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+input {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  border: 1px solid #b45309;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #92400e;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+
+.vue-container {
+  margin-top: 0.9rem;
+}
+
+.result {
+  margin-top: 0.9rem;
+}

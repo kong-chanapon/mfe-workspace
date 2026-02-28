@@ -1,0 +1,20 @@
+.card {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+  background: #eff6ff;
+}
+
+h4 {
+  margin: 0 0 0.5rem;
+}
+
+button {
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e40af;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}

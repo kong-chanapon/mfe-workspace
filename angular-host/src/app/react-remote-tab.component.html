@@ -1,0 +1,19 @@
+<section class="remote-slot">
+  <h3>React Remote via Module Federation</h3>
+  <p class="state">{{ status }}</p>
+
+  <label for="react-msg">Message</label>
+  <input id="react-msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="react-tag">Tag</label>
+  <input id="react-tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+  </div>
+
+  <div class="react-container" #reactContainer></div>
+
+  <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
+</section>

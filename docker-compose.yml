@@ -1,0 +1,56 @@
+services:
+  angular-host:
+    build:
+      context: ./angular-host
+    container_name: angular-host
+    ports:
+      - "4200:80"
+    depends_on:
+      - angular-mfe1
+      - angular-mfe2
+      - react-mfe-props
+      - react-mfe-window
+      - vue-mfe
+
+  angular-mfe1:
+    build:
+      context: ./angular-mfe
+      args:
+        MFE_NAME: mfe1
+    container_name: angular-mfe1
+    ports:
+      - "4201:80"
+
+  angular-mfe2:
+    build:
+      context: ./angular-mfe
+      args:
+        MFE_NAME: mfe2
+    container_name: angular-mfe2
+    ports:
+      - "4202:80"
+
+  react-mfe-props:
+    build:
+      context: ./react-mfe
+      args:
+        REMOTE_TARGET: props
+    container_name: react-mfe-props
+    ports:
+      - "4300:80"
+
+  react-mfe-window:
+    build:
+      context: ./react-mfe
+      args:
+        REMOTE_TARGET: window
+    container_name: react-mfe-window
+    ports:
+      - "4301:80"
+
+  vue-mfe:
+    build:
+      context: ./vue-mfe
+    container_name: vue-mfe
+    ports:
+      - "4302:80"

@@ -1,0 +1,18 @@
+.io-demo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+h2 {
+  margin: 0;
+}
+
+.state {
+  margin: 0;
+  color: #4b5563;
+}
+
+.remote-wrapper {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.75rem;
+}
