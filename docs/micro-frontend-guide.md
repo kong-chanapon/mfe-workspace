@@ -1,155 +1,192 @@
 # Micro-Frontend Guide (Angular Host + Angular/React/Vue Remotes)
 
-เอกสารนี้สรุปภาพรวมและวิธีใช้งานโปรเจกต์นี้แบบ end-to-end รวมทั้งการสื่อสาร `input/output`, `webpack`, `window event`, runtime config และการรันทั้งแบบ local และ docker
+เอกสารนี้สรุปทั้งแนวคิดและ implementation ของโปรเจกต์นี้ ตั้งแต่ที่มา, สถาปัตยกรรม, การสื่อสารระหว่าง host/remote, เหตุผลที่แต่ละ framework setup ต่างกัน, ไปจนถึงวิธีรัน local/docker
 
-## 1) โครงสร้างโปรเจกต์
+## 1) ที่มาและเป้าหมายของ Micro-Frontend
 
-- `angular-host/`:
-  - Host หลัก (Angular + Native Federation)
-  - มีหน้า demo สำหรับ Angular remote, React remote, Vue remote
-- `angular-mfe/`:
-  - Angular remotes 2 ตัว (`mfe1`, `mfe2`)
-- `react-mfe/`:
-  - React remotes 2 แบบในโปรเจกต์เดียว
-  - แบบ props/callback (`reactRemote`)
-  - แบบ window events (`reactWindowRemote`)
-- `vue-mfe/`:
-  - Vue remote (Vite + Federation)
-- `docker-compose.yml`:
-  - ใช้จำลอง deploy หลาย service พร้อมกัน
+Micro-Frontend เกิดจากแนวคิดเดียวกับ Microservice: แยกระบบใหญ่ให้ deploy ได้เป็นส่วนย่อยที่มีขอบเขตชัดเจน
 
-## 2) รูปแบบการสื่อสาร Host <-> Remote
+เป้าหมายหลัก:
+- ลด coupling ระหว่างทีม
+- deploy แยกกันได้
+- เลือกเทคโนโลยีได้เหมาะกับแต่ละโดเมน
+- ลด blast radius เวลามี bug
 
-## 2.1 Angular host <-> Angular remote (Native Federation)
+เหตุผลที่โปรเจกต์นี้ทำแบบหลาย framework (Angular + React + Vue):
+- จำลองสถานการณ์ migration จริง
+- ทดลอง contract กลางสำหรับ input/output
+- เปรียบเทียบวิธีเชื่อมต่อระหว่าง framework ที่ต่างกัน
 
-- ฝั่ง host เรียก remote ด้วย `loadRemoteModule(...)` ผ่าน route/component
-- remote Angular expose component ผ่าน `federation.config.js`
-- เหมาะกับ Angular-to-Angular เพราะ integration ตรงที่สุด
+## 2) ภาพรวมสถาปัตยกรรมของโปรเจกต์นี้
 
-## 2.2 Angular host <-> React remote (props/callback)
+โครงสร้าง:
+- `angular-host/`: Shell/Host หลัก
+- `angular-mfe/`: Angular remotes (`mfe1`, `mfe2`)
+- `react-mfe/`: React remotes 2 แบบ
+- `vue-mfe/`: Vue remote (Vite federation)
 
-- Host โหลด `remoteEntry.js` แล้วเรียก `mount(container, { input, onOutput })`
-- `input` = ข้อมูลจาก host ไป remote
-- `onOutput` = callback จาก remote กลับ host
-- ในโปรเจกต์นี้อยู่ที่หน้า `React Remote Tab`
+Topology พอร์ต (local/dev):
+- Host: `http://localhost:4200`
+- Angular MFE1: `http://localhost:4201`
+- Angular MFE2: `http://localhost:4202`
+- React props remote: `http://localhost:4300`
+- React window-event remote: `http://localhost:4301`
+- Vue remote: `http://localhost:4302`
+
+## 3) คำศัพท์สำคัญ
+
+- Host/Shell: แอปแม่ที่ประกอบหลาย remote เข้าด้วยกัน
+- Remote: แอปย่อยที่ expose module/component ให้ host โหลด
+- Federation Container: object ที่มี `init()` และ `get()`
+- `remoteEntry`: entrypoint ของ remote สำหรับ host ใช้ค้น module ที่ expose
+- Contract: รูปแบบข้อมูลที่ตกลงกันระหว่าง host กับ remote
+
+## 4) ทำไม setup การโหลด component ของแต่ละตัวไม่เหมือนกัน
+
+## 4.1 Angular host -> Angular remote
+
+ใช้ Native Federation + Angular ecosystem เดียวกัน จึงโหลด module ได้ตรงด้วย `loadRemoteModule(...)`
 
 ข้อดี:
-- contract ชัดเจน
-- scope ของ event ไม่ global
+- route/component integration ตรง framework
+- lifecycle/DI/zone อยู่ในโลก Angular เดียวกัน
 
-## 2.3 Angular host <-> React remote (window events)
+## 4.2 Angular host -> React/Vue remote
 
-- Host ส่งผ่าน `window.dispatchEvent(...)`
-- Remote ฟังด้วย `window.addEventListener(...)`
-- Remote ส่งกลับแบบ event เช่นกัน
-- ในโปรเจกต์นี้อยู่ที่หน้า `React Window Event Tab`
+Angular ไม่รู้จัก React/Vue component โดยตรง จึงต้องใช้วิธี “imperative mount”:
+- Host โหลด `remoteEntry.js`
+- ขอ `./mount` จาก container
+- เรียก `mount(containerEl, { input, onOutput })`
+- เก็บตัวคืน (`update`, `unmount`) เพื่อควบคุม lifecycle
 
 ข้อดี:
-- ข้าม framework ง่าย
+- framework-agnostic
+- contract ชัด
 
-ข้อควรระวัง:
-- เป็น global channel ต้องตั้งชื่อ event ให้ชัด
-- ต้อง cleanup listener ตอน unmount
+ต้นทุน:
+- ต้องเขียน bridge เอง (mount/update/unmount)
+- ต้องจัดการ change detection/zone เอง (ฝั่ง Angular)
 
-## 2.4 Angular host <-> Vue remote
+## 4.3 บทบาทของ `NgZone.run(...)`
 
-- Host dynamic import remote entry แล้วเรียก `mount(container, { input, onOutput })`
-- เหมือน React props/callback pattern
-- อยู่ที่หน้า `Vue Remote Tab`
+เมื่อ callback มาจากโลกนอก Angular (เช่น React/Vue callback หรือ DOM event ตรงๆ) Angular อาจไม่ trigger change detection อัตโนมัติ
 
-## 3) Input / Output Contract ที่แนะนำ
+จึงใช้ `NgZone.run(...)` เพื่อให้ state update แล้ว UI Angular refresh แน่นอน
 
-ใช้ contract กลางแบบเดียวกันทุก remote จะ debug ง่าย:
+## 5) รูปแบบการสื่อสาร Input/Output
+
+## 5.1 Contract กลางที่ใช้ในโปรเจกต์
 
 ```ts
-// input from host
+// Host -> Remote
 {
   type: string;
   payload: Record<string, unknown>;
 }
 
-// output from remote
+// Remote -> Host
 {
   type: string;
   payload: unknown;
 }
 ```
 
-ตัวอย่างค่า:
+เหตุผลที่ใช้แบบนี้:
+- ขยาย event type ได้โดยไม่ต้องเพิ่ม props/event ใหม่ทุกครั้ง
+- debug/logging ง่าย
+- ใช้ schema validation ภายหลังได้
 
-- Input:
-  - `type: "set-context"`
-  - `payload: { message: "hello", tag: "demo" }`
-- Output:
-  - `type: "acknowledged"`
-  - `payload: { source: "react-remote", ... }`
+## 5.2 Pattern A: props/callback (`mount` API)
 
-## 4) Environment/Config ที่ใช้แทนการ hardcode URL
+ตัวอย่าง flow:
+1. Host ส่ง `input` ตอน mount
+2. Host เปลี่ยน state -> เรียก `update({ input })`
+3. Remote ส่งผลกลับผ่าน `onOutput(event)`
 
-## 4.1 Angular Host: runtime config
+เหมาะกับ:
+- ช่องทางสื่อสารแบบ point-to-point
+- ต้องการความชัดของ ownership
+
+## 5.3 Pattern B: `window.dispatchEvent` / `window.addEventListener`
+
+ตัวอย่าง flow:
+1. Host `dispatchEvent('mfe:host-to-react-window', detail)`
+2. Remote ฟัง event นี้และอัปเดตตัวเอง
+3. Remote ส่งกลับด้วยอีก event เช่น `mfe:react-window-to-host`
+
+เหมาะกับ:
+- เชื่อมหลายแอปโดยไม่ผูกกับ mount signature มาก
+
+ข้อควรระวัง:
+- global scope ชนชื่อ event ง่าย
+- ต้อง remove listener ตอน unmount
+- trace ยากขึ้นเมื่อระบบใหญ่
+
+## 5.4 แล้วใช้ `[input] (output)` แบบ Angular ได้ไหม
+
+ได้ “เฉพาะ” ภายใน wrapper Angular component ของ host
+
+ความหมายคือ:
+- `<app-mfe2-io-demo [input]="..." (output)="...">` เป็น contract ระหว่าง `app-root` กับ wrapper
+- wrapper แปลงเป็น bridge ไป remote จริงอีกชั้น (`mount/update/onOutput`)
+
+สรุป: Angular syntax ใช้ได้ แต่ไม่ได้ทะลุข้าม framework โดยตรง ต้องมี adapter/wrapper เสมอ
+
+## 6) Webpack / Module Federation / Vite Federation
+
+## 6.1 React (Webpack Module Federation)
+
+ฝั่ง React ใช้ 2 config:
+- `webpack.props.config.js` (scope `reactRemote`)
+- `webpack.window.config.js` (scope `reactWindowRemote`)
+
+ค่าเช่น `publicPath`, `port`, `scope`, `remoteEntryFilename` ถูกอ่านจาก `react-mfe/environment.json`
+
+## 6.2 Angular (Native Federation)
+
+Angular remotes expose ผ่าน `federation.config.js` และ host initialize remotes ใน `main.ts` ก่อน bootstrap
+
+## 6.3 Vue (Vite + Federation plugin)
+
+Vue remote ใช้ `@originjs/vite-plugin-federation` แล้ว expose `./mount`
+
+## 6.4 เรื่อง `init()` และ `get()`
+
+container มาตรฐานมักมี:
+- `init(sharedScope)` สำหรับ setup shared libs
+- `get('./mount')` เพื่อเอา factory ของ module
+
+host จึงต้อง handle กรณี re-init และรูปแบบ export ที่ต่างกัน (default/function/object)
+
+## 7) Runtime Config (`environment.json`) และเหตุผลที่ใช้
+
+## 7.1 Angular Host (runtime)
 
 ไฟล์: `angular-host/public/environment.json`
 
-```json
-{
-  "remotes": {
-    "mfe1": "http://localhost:4201/remoteEntry.json",
-    "mfe2": "http://localhost:4202/remoteEntry.json",
-    "reactPropsEntry": "http://localhost:4300/remoteEntry.js",
-    "reactPropsScope": "reactRemote",
-    "reactWindowEntry": "http://localhost:4301/remoteEntry.js",
-    "reactWindowScope": "reactWindowRemote",
-    "vueEntry": "http://localhost:4302/assets/remoteEntry.js"
-  }
-}
-```
+- โหลดตอน runtime ผ่าน HTTP (`/environment.json`)
+- ไม่ต้อง rebuild ถ้าแค่เปลี่ยน URL remote
+- เหมาะกับ deployment จริงที่แต่ละ environment ใช้ endpoint ต่างกัน
 
-พฤติกรรม:
-- `main.ts` จะ fetch `/environment.json` ก่อน bootstrap
-- ถ้าโหลดไม่ได้ จะ fallback ไปค่า default ในโค้ด
-- แก้ไฟล์นี้ได้โดยไม่ต้องแก้ source code
-
-## 4.2 React MFE: build/dev config
+## 7.2 React Webpack (build/start time)
 
 ไฟล์: `react-mfe/environment.json`
 
-```json
-{
-  "props": {
-    "publicPath": "http://localhost:4300/",
-    "port": 4300,
-    "scope": "reactRemote",
-    "remoteEntryFilename": "remoteEntry.js"
-  },
-  "window": {
-    "publicPath": "http://localhost:4301/",
-    "port": 4301,
-    "scope": "reactWindowRemote",
-    "remoteEntryFilename": "remoteEntry.js"
-  }
-}
-```
+- webpack config อ่านตอน start/build
+- ถ้าแก้ค่า ต้อง restart/build ใหม่
+- เหมาะกับการจัดค่าที่ผูกกับ bundler เช่น `publicPath`, `scope`, `port`
 
-พฤติกรรม:
-- webpack config จะอ่านไฟล์นี้ตอน `start/build`
-- ถ้าแก้ค่า ต้อง start/build ใหม่
+## 8) วิธีรันโปรเจกต์
 
-## 5) Webpack / Federation สรุป
+## 8.1 Local dev
 
-- React ใช้ Module Federation ผ่าน `webpack.props.config.js` และ `webpack.window.config.js`
-- แต่ละ remote มี `name/scope` ของตัวเอง
-- export module `./mount` เพื่อให้ host เรียกแบบ programmatic ได้
-- ตั้ง CORS ที่ dev server เป็น `Access-Control-Allow-Origin: *` เพื่อเรียกข้าม origin ระหว่าง host/remote
-
-## 6) การรันโปรเจกต์ (Local)
-
-รันจาก root `mfe-workspace`:
+จาก root `mfe-workspace`:
 
 ```bash
 npm run start:all
 ```
 
-หรือรันแยก:
+หรือแยก service:
 
 ```bash
 npm run start:host
@@ -160,55 +197,86 @@ npm run start:react-window
 npm run start:vue
 ```
 
-พอร์ตหลัก:
-
-- Host: `4200`
-- Angular MFE1: `4201`
-- Angular MFE2: `4202`
-- React Props Remote: `4300`
-- React Window Remote: `4301`
-- Vue Remote: `4302`
-
-## 7) การรันด้วย Docker (simulate deployment)
-
-build + up:
+## 8.2 Build
 
 ```bash
-npm run docker:up
+npm run build:host
+npm run build:mfe1
+npm run build:mfe2
+npm run build:react
+npm run build:react-window
+npm run build:vue
 ```
 
-build อย่างเดียว:
+## 8.3 Docker (simulate deployment)
 
 ```bash
 npm run docker:build
-```
-
-down:
-
-```bash
+npm run docker:up
 npm run docker:down
 ```
 
-หมายเหตุ:
-- ใน container ทุก service serve ด้วย Nginx
-- compose map port ให้เท่ากับ local dev convention (`4200/4201/4202/4300/4301/4302`)
+รายละเอียด:
+- ทุก service serve static ด้วย Nginx
+- มี CORS header เปิดไว้สำหรับ cross-origin remote loading
+- `docker-compose.yml` map พอร์ตให้ตรงกับ dev convention
 
-## 8) Troubleshooting ที่เจอบ่อย
+## 9) ทำไมต้องมี setup ที่เยอะขึ้นเมื่อข้าม framework
 
-- หน้า host เปิดแล้ว remote ไม่ขึ้น:
-  - เช็กว่า remote service/pod ต้นทางขึ้นครบ
-  - เช็ก URL ใน `environment.json`
-  - เปิด DevTools ดูว่าโหลด `remoteEntry` สำเร็จไหม
-- React/Vue remote โหลดได้แต่ UI ไม่อัปเดต host:
-  - เช็ก contract `onOutput`/event name ตรงกัน
-  - เช็ก cleanup listener ซ้ำซ้อน
-- เปลี่ยน config แล้วเหมือนไม่มีผล:
-  - Angular host: hard refresh (เพราะ browser cache)
-  - React webpack env: restart dev/build
+Angular -> Angular:
+- framework runtime ใกล้กัน
+- load component ได้ตรงกว่า
 
-## 9) แนวทางต่อยอด production
+Angular -> React/Vue:
+- ต้อง bridge lifecycle เอง (`mount/update/unmount`)
+- ต้องแปลงสัญญาณ event/state ข้ามโลก framework
+- ต้องระวัง change detection และ cleanup มากกว่า
 
-- แยก `environment.json` ตาม env (dev/staging/prod)
-- ใช้ reverse proxy/domain จริงแทน localhost
-- เพิ่ม health checks และ observability (logs/metrics)
-- ใส่ versioning ให้ remote contracts (`type`, schema)
+นี่คือเหตุผลหลักว่าทำไมโค้ด `loadRemoteContainer` ของ React/Vue ดูยาวกว่า Angular-to-Angular
+
+## 10) แนวทางออกแบบสัญญา (contract) สำหรับทีม
+
+แนะนำให้กำหนดมาตรฐานกลาง:
+- ชื่อ `type` แบบ namespace เช่น `cart.item-added`, `auth.token-expired`
+- version ของ payload เช่น `meta.version`
+- schema validation (zod/io-ts/json-schema)
+- มีเอกสาร event catalog กลาง
+
+## 11) Security และความเสี่ยงที่ควรรู้
+
+- Remote script คือ code execution จาก origin อื่น ต้องเชื่อถือแหล่งที่มา
+- ควรบังคับ allowlist ของ remote URL
+- กำหนด CSP ให้เหมาะสม
+- แยกสิทธิ์และข้อมูลสำคัญไม่ให้ remote เข้าถึงเกินจำเป็น
+
+## 12) Troubleshooting
+
+- Host ขึ้นแต่ remote ไม่แสดง:
+  - ตรวจว่า remote URL ใน `environment.json` ถูกต้อง
+  - เปิด network ดู `remoteEntry`/chunk โหลดสำเร็จไหม
+- Remote แสดงแต่ output ไม่กลับ host:
+  - ตรวจ event name/contract และ scope
+  - ตรวจว่า callback เข้า `NgZone.run(...)` แล้วหรือยัง
+- React/Vue เปลี่ยน env แล้วไม่เปลี่ยน:
+  - restart dev server หรือ build ใหม่
+
+## 13) Checklist ตอนเพิ่ม remote ใหม่
+
+1. กำหนด scope/name/entry URL ของ remote
+2. expose `./mount` และรองรับ `update/unmount`
+3. เพิ่มค่าใน `angular-host/public/environment.json`
+4. สร้าง tab/route ใน host สำหรับ mount
+5. นิยาม input/output contract ให้ชัด
+6. ทดสอบทั้ง local และ docker
+7. เพิ่ม docs ของ event/contract
+
+## 14) สรุปการเลือก pattern
+
+- ถ้า Angular-to-Angular: ใช้ Native Federation + route/component loading
+- ถ้าข้าม frameworkและต้องการ contract ชัด: ใช้ `mount(input,onOutput)`
+- ถ้าต้องการ broadcast หลาย consumer: ใช้ window events (พร้อม governance)
+
+แนวทางที่แนะนำสำหรับระบบ production:
+- ใช้ `mount` เป็น default
+- ใช้ window events เฉพาะ event ที่เป็น global จริง
+- เก็บ URL/config ใน runtime config ให้แก้ได้โดยไม่ rebuild
