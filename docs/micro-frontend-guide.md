@@ -454,6 +454,14 @@ Window-event mode (`mountWindow.ts`):
 - ถ้าแก้ค่า ต้อง restart/build ใหม่
 - เหมาะกับการจัดค่าที่ผูกกับ bundler เช่น `publicPath`, `scope`, `port`
 
+## 7.3 Vue Vite Federation (build/start time)
+
+ไฟล์: `vue-mfe/vite.config.ts`, `vue-mfe/vite.window.config.ts`
+
+- ค่าที่เกี่ยวกับ expose/entry/scope ถูกกำหนดใน vite config ตอน build
+- ถ้าเปลี่ยน `name`, `exposes`, `filename` ต้อง build/start ใหม่
+- ส่วน URL ปลายทางที่ host จะเรียก ใช้จาก `angular-host/public/environment.json` ฝั่ง host runtime
+
 ## 8) วิธีรันโปรเจกต์
 
 ## 8.1 Local dev
@@ -565,7 +573,7 @@ Angular -> React/Vue:
 ## 14) สรุปการเลือก pattern
 
 - ถ้า Angular-to-Angular: ใช้ Native Federation + route/component loading
-- ถ้าข้าม frameworkและต้องการ contract ชัด: ใช้ `mount(input,onOutput)`
+- ถ้าข้าม framework และต้องการ contract ชัด: ใช้ `mount(input,onOutput)`
 - ถ้าต้องการ broadcast หลาย consumer: ใช้ window events (พร้อม governance)
 
 แนวทางที่แนะนำสำหรับระบบ production:

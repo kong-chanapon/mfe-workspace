@@ -2,6 +2,11 @@
   "name": "mfe-workspace",
   "version": "0.0.0",
   "scripts": {
+    "install:host": "npm --prefix angular-host ci",
+    "install:angular-mfe": "npm --prefix angular-mfe ci",
+    "install:react": "npm --prefix react-mfe ci",
+    "install:vue": "npm --prefix vue-mfe ci",
+    "install:all": "npm ci && npm run install:host && npm run install:angular-mfe && npm run install:react && npm run install:vue",
     "start:host": "npm --prefix angular-host run start",
     "start:mfe1": "npm --prefix angular-mfe run start:mfe1",
     "start:mfe2": "npm --prefix angular-mfe run start:mfe2",

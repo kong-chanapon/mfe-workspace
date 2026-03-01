@@ -9,6 +9,21 @@ Monorepo สำหรับทดลอง Micro-Frontend ระหว่าง 
 - `react-mfe/` - React remotes (`props`, `window-event`, `window-event-collision`)
 - `vue-mfe/` - Vue remotes (`props/callback`, `window-event`)
 
+## Install
+
+จาก root (`mfe-workspace`)
+
+```bash
+npm run install:all
+```
+
+คำสั่งนี้จะติดตั้ง dependency ของ:
+- root workspace
+- `angular-host`
+- `angular-mfe`
+- `react-mfe`
+- `vue-mfe`
+
 ## Quick Start
 
 จาก root (`mfe-workspace`)
