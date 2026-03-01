@@ -19,31 +19,41 @@ p {
   color: #4b5563;
 }
 
-nav {
+.tabs {
   display: flex;
-  gap: 0.75rem;
-  margin: 1rem 0 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
-a {
-  text-decoration: none;
-  padding: 0.5rem 0.875rem;
-  border-radius: 8px;
+.tab {
   border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
   color: #111827;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
 }
 
-a.active {
+.tab.active {
   background: #111827;
   color: #ffffff;
   border-color: #111827;
 }
 
-.remote-slot {
-  border: 1px solid #e5e7eb;
+.host-log {
+  border: 1px dashed #d1d5db;
   border-radius: 12px;
   padding: 1rem;
-  background: #f9fafb;
-  min-height: 180px;
+  background: #ffffff;
   margin-top: 1rem;
+}
+
+.host-log h3 {
+  margin: 0 0 0.5rem;
+}
+
+.host-log p {
+  margin: 0.35rem 0;
+  color: #1f2937;
 }

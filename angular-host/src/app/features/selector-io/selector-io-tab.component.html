@@ -1,5 +1,5 @@
 <section class="remote-slot">
-  <h3>Host Component via Selector (Single Input/Output Contract)</h3>
+  <h3>MFE2 via Selector (Single Input/Output Contract)</h3>
 
   <label for="msg">Message</label>
   <input id="msg" [value]="currentMessage" (input)="onMessageChange($event)" />
@@ -12,7 +12,7 @@
     <button type="button" (click)="setInputType('refresh')">type = refresh</button>
   </div>
 
-  <app-host-io-demo [input]="demoInput" (output)="onRemoteOutput($event)"></app-host-io-demo>
+  <app-host-mfe2-io-demo [input]="input" (output)="onRemoteOutput($event)"></app-host-mfe2-io-demo>
 
   <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
 </section>

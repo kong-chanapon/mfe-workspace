@@ -1,0 +1,82 @@
+:host {
+  display: block;
+}
+
+.remote-slot {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f9fafb;
+  min-height: 180px;
+}
+
+.state {
+  margin: 0;
+  color: #4b5563;
+}
+
+.hint {
+  margin: 0.4rem 0 0;
+  color: #475569;
+}
+
+label {
+  display: block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+input {
+  width: 100%;
+  max-width: 480px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+button {
+  border: 1px solid #7c3aed;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6d28d9;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+
+.remote-grid {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.8rem;
+}
+
+.remote-card {
+  border: 1px dashed #d8b4fe;
+  border-radius: 10px;
+  padding: 0.65rem;
+  background: #fcfbff;
+}
+
+.remote-card h4 {
+  margin: 0 0 0.6rem;
+  color: #4c1d95;
+}
+
+.result {
+  margin-top: 0.9rem;
+}
+
+.event-log {
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+  color: #374151;
+}

@@ -1,28 +1,30 @@
-import { Component } from '@angular/core';
-import { HostDemoInput, HostDemoOutput, HostIoDemoComponent } from './host-io-demo.component';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Mfe2IoDemoComponent, RemoteInput, RemoteOutput } from './mfe2-io-demo.component';
 
 @Component({
-  selector: 'app-selector-io-tab',
-  imports: [HostIoDemoComponent],
+  selector: 'app-host-selector-io-tab',
+  imports: [Mfe2IoDemoComponent],
   templateUrl: './selector-io-tab.component.html',
   styleUrl: './selector-io-tab.component.css',
 })
-export class SelectorIoTabComponent {
-  demoInput: HostDemoInput = {
+export class HostSelectorIoTabComponent {
+  @Input() input: RemoteInput = {
     type: 'set-context',
     payload: {
       message: 'hello from host',
       tag: 'starter',
     },
   };
+  @Output() output = new EventEmitter<RemoteOutput>();
+
   latestOutput = 'waiting output...';
 
   get currentMessage(): string {
-    return String(this.demoInput.payload['message'] ?? '');
+    return String(this.input.payload['message'] ?? '');
   }
 
   get currentTag(): string {
-    return String(this.demoInput.payload['tag'] ?? '');
+    return String(this.input.payload['tag'] ?? '');
   }
 
   onMessageChange(event: Event): void {
@@ -36,21 +38,22 @@ export class SelectorIoTabComponent {
   }
 
   setInputType(type: string): void {
-    this.demoInput = {
-      ...this.demoInput,
+    this.input = {
+      ...this.input,
       type,
     };
   }
 
-  onRemoteOutput(event: HostDemoOutput): void {
+  onRemoteOutput(event: RemoteOutput): void {
     this.latestOutput = JSON.stringify(event);
+    this.output.emit(event);
   }
 
   private updatePayload(partialPayload: Record<string, unknown>): void {
-    this.demoInput = {
-      ...this.demoInput,
+    this.input = {
+      ...this.input,
       payload: {
-        ...this.demoInput.payload,
+        ...this.input.payload,
         ...partialPayload,
       },
     };

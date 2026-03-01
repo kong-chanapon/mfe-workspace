@@ -10,7 +10,9 @@ services:
       - angular-mfe2
       - react-mfe-props
       - react-mfe-window
+      - react-mfe-window-collision
       - vue-mfe
+      - vue-mfe-window
 
   angular-mfe1:
     build:
@@ -48,9 +50,29 @@ services:
     ports:
       - "4301:80"
 
+  react-mfe-window-collision:
+    build:
+      context: ./react-mfe
+      args:
+        REMOTE_TARGET: window-collision
+    container_name: react-mfe-window-collision
+    ports:
+      - "4303:80"
+
   vue-mfe:
     build:
       context: ./vue-mfe
+      args:
+        REMOTE_TARGET: props
     container_name: vue-mfe
     ports:
       - "4302:80"
+
+  vue-mfe-window:
+    build:
+      context: ./vue-mfe
+      args:
+        REMOTE_TARGET: window
+    container_name: vue-mfe-window
+    ports:
+      - "4304:80"

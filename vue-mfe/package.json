@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "vite build && concurrently -k \"vite build --watch\" \"vite preview --strictPort --port 4302\"",
-    "build": "vite build",
+    "start": "npm run start:props",
+    "start:props": "vite build --config vite.config.ts && concurrently -k \"vite build --watch --config vite.config.ts\" \"vite preview --strictPort --port 4302 --config vite.config.ts\"",
+    "start:window": "vite build --config vite.window.config.ts && concurrently -k \"vite build --watch --config vite.window.config.ts\" \"vite preview --strictPort --port 4304 --config vite.window.config.ts\"",
+    "build": "npm run build:all",
+    "build:props": "vite build --config vite.config.ts",
+    "build:window": "vite build --config vite.window.config.ts",
+    "build:all": "npm run build:props && npm run build:window",
     "preview": "vite preview --port 4302"
   },
   "dependencies": {

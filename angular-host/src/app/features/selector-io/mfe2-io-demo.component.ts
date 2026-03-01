@@ -25,7 +25,7 @@ export type RemoteOutput = {
 };
 
 @Component({
-  selector: 'app-mfe2-io-demo',
+  selector: 'app-host-mfe2-io-demo',
   templateUrl: './mfe2-io-demo.component.html',
   styleUrl: './mfe2-io-demo.component.css',
 })

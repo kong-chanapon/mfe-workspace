@@ -6,7 +6,10 @@ export type AppRuntimeConfig = {
     reactPropsScope: string;
     reactWindowEntry: string;
     reactWindowScope: string;
+    reactWindowCollisionEntry: string;
+    reactWindowCollisionScope: string;
     vueEntry: string;
+    vueWindowEntry: string;
   };
 };
 
@@ -18,7 +21,10 @@ export const DEFAULT_APP_CONFIG: AppRuntimeConfig = {
     reactPropsScope: 'reactRemote',
     reactWindowEntry: 'http://localhost:4301/remoteEntry.js',
     reactWindowScope: 'reactWindowRemote',
+    reactWindowCollisionEntry: 'http://localhost:4303/remoteEntry.js',
+    reactWindowCollisionScope: 'reactWindowCollisionRemote',
     vueEntry: 'http://localhost:4302/assets/remoteEntry.js',
+    vueWindowEntry: 'http://localhost:4304/assets/remoteEntry.js',
   },
 };
 
@@ -44,7 +50,16 @@ export const normalizeAppConfig = (value: unknown): AppRuntimeConfig => {
       reactPropsScope: readString(remotes['reactPropsScope'], DEFAULT_APP_CONFIG.remotes.reactPropsScope),
       reactWindowEntry: readString(remotes['reactWindowEntry'], DEFAULT_APP_CONFIG.remotes.reactWindowEntry),
       reactWindowScope: readString(remotes['reactWindowScope'], DEFAULT_APP_CONFIG.remotes.reactWindowScope),
+      reactWindowCollisionEntry: readString(
+        remotes['reactWindowCollisionEntry'],
+        DEFAULT_APP_CONFIG.remotes.reactWindowCollisionEntry,
+      ),
+      reactWindowCollisionScope: readString(
+        remotes['reactWindowCollisionScope'],
+        DEFAULT_APP_CONFIG.remotes.reactWindowCollisionScope,
+      ),
       vueEntry: readString(remotes['vueEntry'], DEFAULT_APP_CONFIG.remotes.vueEntry),
+      vueWindowEntry: readString(remotes['vueWindowEntry'], DEFAULT_APP_CONFIG.remotes.vueWindowEntry),
     },
   };
 };

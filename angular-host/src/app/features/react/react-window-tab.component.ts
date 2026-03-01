@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, NgZone, OnDestroy, ViewChild } from '@angular/core';
-import { getAppConfig } from './app-config';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, NgZone, OnDestroy, Output, ViewChild } from '@angular/core';
+import { getAppConfig } from '../../core/runtime-config';
 
 type RemoteInput = {
   type: string;
@@ -11,18 +11,13 @@ type RemoteOutput = {
   payload: unknown;
 };
 
-type MountOptions = {
-  input?: RemoteInput;
-  onOutput?: (event: RemoteOutput) => void;
-};
-
 type MountedRemote = {
-  update: (next: MountOptions) => void;
+  update?: (next: { input?: RemoteInput }) => void;
   unmount: () => void;
 };
 
 type ReactRemoteModule = {
-  mount: (container: HTMLElement, options?: MountOptions) => MountedRemote;
+  mount: (container: HTMLElement, options?: { input?: RemoteInput }) => MountedRemote;
 };
 
 type FederationContainer = {
@@ -30,21 +25,34 @@ type FederationContainer = {
   get: (module: string) => Promise<() => ReactRemoteModule>;
 };
 
+const HOST_TO_REACT_EVENT = 'mfe:host-to-react-window';
+const REACT_TO_HOST_EVENT = 'mfe:react-window-to-host';
+
 @Component({
-  selector: 'app-react-remote-tab',
-  templateUrl: './react-remote-tab.component.html',
-  styleUrl: './react-remote-tab.component.css',
+  selector: 'app-mfe-react-window-tab',
+  templateUrl: './react-window-tab.component.html',
+  styleUrl: './react-window-tab.component.css',
 })
-export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
-  remoteInput: RemoteInput = {
+export class MfeReactWindowTabComponent implements AfterViewInit, OnDestroy {
+  private remoteInput: RemoteInput = {
     type: 'set-context',
     payload: {
       message: 'hello from angular host',
-      tag: 'angular-to-react',
+      tag: 'window-event',
     },
   };
+  @Output() output = new EventEmitter<RemoteOutput>();
+
+  @Input('input') set input(value: RemoteInput) {
+    if (!value) {
+      return;
+    }
+    this.remoteInput = value;
+    this.pushInputToRemote();
+  }
+
   latestOutput = 'waiting output...';
-  status = 'Loading React remote...';
+  status = 'Loading React window-event remote...';
 
   @ViewChild('reactContainer', { static: true })
   private reactContainer!: ElementRef<HTMLDivElement>;
@@ -53,8 +61,19 @@ export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
   private readonly zone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  private readonly onReactOutput = (event: Event): void => {
+    const custom = event as CustomEvent<RemoteOutput>;
+    this.zone.run(() => {
+      this.latestOutput = JSON.stringify(custom.detail);
+      this.output.emit(custom.detail);
+      this.cdr.detectChanges();
+    });
+  };
+
   async ngAfterViewInit(): Promise<void> {
+    window.addEventListener(REACT_TO_HOST_EVENT, this.onReactOutput as EventListener);
     await this.mountRemote();
+    this.pushInputToRemote();
   }
 
   onMessageChange(event: Event): void {
@@ -84,6 +103,7 @@ export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    window.removeEventListener(REACT_TO_HOST_EVENT, this.onReactOutput as EventListener);
     this.mountedRemote?.unmount();
   }
 
@@ -95,21 +115,15 @@ export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
 
       this.mountedRemote = remoteModule.mount(this.reactContainer.nativeElement, {
         input: this.remoteInput,
-        onOutput: (event: RemoteOutput) => {
-          this.zone.run(() => {
-            this.latestOutput = JSON.stringify(event);
-            this.cdr.detectChanges();
-          });
-        },
       });
 
       this.zone.run(() => {
-        this.status = 'React remote mounted from Module Federation';
+        this.status = 'React window-event remote mounted';
         this.cdr.detectChanges();
       });
     } catch (error) {
       this.zone.run(() => {
-        this.status = 'Failed to load React remote';
+        this.status = 'Failed to load React window-event remote';
         this.cdr.detectChanges();
       });
       console.error(error);
@@ -118,13 +132,13 @@ export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
 
   private async loadRemoteContainer(): Promise<FederationContainer> {
     const config = getAppConfig();
-    await this.injectRemoteEntryScript(config.remotes.reactPropsEntry, config.remotes.reactPropsScope);
-    const container = (window as unknown as Record<string, unknown>)[config.remotes.reactPropsScope] as
+    await this.injectRemoteEntryScript(config.remotes.reactWindowEntry, config.remotes.reactWindowScope);
+    const container = (window as unknown as Record<string, unknown>)[config.remotes.reactWindowScope] as
       | FederationContainer
       | undefined;
 
     if (!container) {
-      throw new Error(`${config.remotes.reactPropsScope} container not found on window`);
+      throw new Error(`${config.remotes.reactWindowScope} container not found on window`);
     }
 
     if (typeof container.init === 'function') {
@@ -175,6 +189,7 @@ export class ReactRemoteTabComponent implements AfterViewInit, OnDestroy {
   }
 
   private pushInputToRemote(): void {
-    this.mountedRemote?.update({ input: this.remoteInput });
+    this.mountedRemote?.update?.({ input: this.remoteInput });
+    window.dispatchEvent(new CustomEvent(HOST_TO_REACT_EVENT, { detail: this.remoteInput }));
   }
 }

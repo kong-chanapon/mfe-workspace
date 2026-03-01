@@ -1,0 +1,19 @@
+<section class="remote-slot">
+  <h3>Vue Remote via Window Events</h3>
+  <p class="state">{{ status }}</p>
+
+  <label for="vue-window-msg">Message</label>
+  <input id="vue-window-msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="vue-window-tag">Tag</label>
+  <input id="vue-window-tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+  </div>
+
+  <div class="vue-container" #vueContainer></div>
+
+  <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
+</section>

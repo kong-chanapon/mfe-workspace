@@ -1,5 +1,5 @@
 import { initFederation } from '@angular-architects/native-federation';
-import { DEFAULT_APP_CONFIG, normalizeAppConfig, setAppConfig } from './app/app-config';
+import { DEFAULT_APP_CONFIG, normalizeAppConfig, setAppConfig } from './app/core/runtime-config';
 
 const loadRuntimeConfig = async () => {
   try {

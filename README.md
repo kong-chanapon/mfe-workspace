@@ -6,8 +6,8 @@ Monorepo สำหรับทดลอง Micro-Frontend ระหว่าง 
 
 - `angular-host/` - Angular host app
 - `angular-mfe/` - Angular remotes (`mfe1`, `mfe2`)
-- `react-mfe/` - React remotes (`props` และ `window-event`)
-- `vue-mfe/` - Vue remote
+- `react-mfe/` - React remotes (`props`, `window-event`, `window-event-collision`)
+- `vue-mfe/` - Vue remotes (`props/callback`, `window-event`)
 
 ## Quick Start
 
@@ -29,7 +29,9 @@ npm run build:mfe1
 npm run build:mfe2
 npm run build:react
 npm run build:react-window
+npm run build:react-window-collision
 npm run build:vue
+npm run build:vue-window
 ```
 
 ## Docker

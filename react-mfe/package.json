@@ -6,10 +6,12 @@
     "start": "npm run start:props",
     "start:props": "webpack serve --config webpack.props.config.js --mode development",
     "start:window": "webpack serve --config webpack.window.config.js --mode development",
+    "start:window-collision": "webpack serve --config webpack.window.collision.config.js --mode development",
     "build": "npm run build:all",
     "build:props": "webpack --config webpack.props.config.js --mode production",
     "build:window": "webpack --config webpack.window.config.js --mode production",
-    "build:all": "npm run build:props && npm run build:window"
+    "build:window-collision": "webpack --config webpack.window.collision.config.js --mode production",
+    "build:all": "npm run build:props && npm run build:window && npm run build:window-collision"
   },
   "dependencies": {
     "react": "^19.1.1",

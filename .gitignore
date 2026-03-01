@@ -8,6 +8,7 @@
 dist/
 out-tsc/
 **/dist/
+**/dist-*/
 **/out-tsc/
 
 # Node

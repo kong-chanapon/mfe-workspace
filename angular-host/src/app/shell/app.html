@@ -1,0 +1,76 @@
+<div class="shell">
+  <h1>Host App</h1>
+  <p>Angular Micro-Frontend (Native Federation)</p>
+
+  <nav class="tabs">
+    <button type="button" class="tab" [class.active]="activeTab === 'mfe1'" (click)="setActiveTab('mfe1')">MFE1</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'mfe2'" (click)="setActiveTab('mfe2')">MFE2</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'selector'" (click)="setActiveTab('selector')">Selector I/O</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'react'" (click)="setActiveTab('react')">React Props</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'react-window'" (click)="setActiveTab('react-window')">React Window</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'react-window-collision'" (click)="setActiveTab('react-window-collision')">
+      React Window Collision
+    </button>
+    <button type="button" class="tab" [class.active]="activeTab === 'vue'" (click)="setActiveTab('vue')">Vue</button>
+    <button type="button" class="tab" [class.active]="activeTab === 'vue-window'" (click)="setActiveTab('vue-window')">Vue Window</button>
+  </nav>
+
+  @switch (activeTab) {
+    @case ('mfe1') {
+      <app-mfe-angular-remote-view
+        remoteName="mfe1"
+        title="Angular Remote: MFE1"
+        [input]="mfe1Input"
+        (output)="onMfe1Output($event)"
+      ></app-mfe-angular-remote-view>
+    }
+
+    @case ('mfe2') {
+      <app-mfe-angular-remote-view
+        remoteName="mfe2"
+        title="Angular Remote: MFE2"
+        [input]="mfe2Input"
+        (output)="onMfe2Output($event)"
+      ></app-mfe-angular-remote-view>
+    }
+
+    @case ('selector') {
+      <app-host-selector-io-tab [input]="selectorInput" (output)="onSelectorOutput($event)"></app-host-selector-io-tab>
+    }
+
+    @case ('react') {
+      <app-mfe-react-remote-tab [input]="reactInput" (output)="onReactOutput($event)"></app-mfe-react-remote-tab>
+    }
+
+    @case ('react-window') {
+      <app-mfe-react-window-tab [input]="reactWindowInput" (output)="onReactWindowOutput($event)"></app-mfe-react-window-tab>
+    }
+
+    @case ('react-window-collision') {
+      <app-mfe-react-window-collision-tab
+        [input]="reactWindowCollisionInput"
+        (output)="onReactWindowCollisionOutput($event)"
+      ></app-mfe-react-window-collision-tab>
+    }
+
+    @case ('vue') {
+      <app-mfe-vue-remote-tab [input]="vueInput" (output)="onVueOutput($event)"></app-mfe-vue-remote-tab>
+    }
+
+    @default {
+      <app-mfe-vue-window-tab [input]="vueWindowInput" (output)="onVueWindowOutput($event)"></app-mfe-vue-window-tab>
+    }
+  }
+
+  <section class="host-log">
+    <h3>Outputs Handled By Host</h3>
+    <p><strong>MFE1:</strong> {{ mfe1Output }}</p>
+    <p><strong>MFE2:</strong> {{ mfe2Output }}</p>
+    <p><strong>Selector:</strong> {{ selectorOutput }}</p>
+    <p><strong>React props:</strong> {{ reactOutput }}</p>
+    <p><strong>React window:</strong> {{ reactWindowOutput }}</p>
+    <p><strong>React window collision:</strong> {{ reactWindowCollisionOutput }}</p>
+    <p><strong>Vue:</strong> {{ vueOutput }}</p>
+    <p><strong>Vue window:</strong> {{ vueWindowOutput }}</p>
+  </section>
+</div>

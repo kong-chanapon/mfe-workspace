@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, NgZone, OnDestroy, ViewChild } from '@angular/core';
-import { getAppConfig } from './app-config';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, NgZone, OnDestroy, Output, ViewChild } from '@angular/core';
+import { getAppConfig } from '../../core/runtime-config';
 
 type RemoteInput = {
   type: string;
@@ -29,25 +29,40 @@ const HOST_TO_REACT_EVENT = 'mfe:host-to-react-window';
 const REACT_TO_HOST_EVENT = 'mfe:react-window-to-host';
 
 @Component({
-  selector: 'app-react-window-tab',
-  templateUrl: './react-window-tab.component.html',
-  styleUrl: './react-window-tab.component.css',
+  selector: 'app-mfe-react-window-collision-tab',
+  templateUrl: './react-window-collision-tab.component.html',
+  styleUrl: './react-window-collision-tab.component.css',
 })
-export class ReactWindowTabComponent implements AfterViewInit, OnDestroy {
-  remoteInput: RemoteInput = {
+export class MfeReactWindowCollisionTabComponent implements AfterViewInit, OnDestroy {
+  private remoteInput: RemoteInput = {
     type: 'set-context',
     payload: {
-      message: 'hello from angular host',
-      tag: 'window-event',
+      message: 'hello from angular host (shared channel)',
+      tag: 'window-event-collision',
     },
   };
+
+  @Output() output = new EventEmitter<RemoteOutput>();
+
+  @Input('input') set input(value: RemoteInput) {
+    if (!value) {
+      return;
+    }
+    this.remoteInput = value;
+    this.pushInputToRemotes();
+  }
+
   latestOutput = 'waiting output...';
-  status = 'Loading React window-event remote...';
+  eventLog: string[] = [];
+  status = 'Loading two React remotes on same window event channel...';
 
-  @ViewChild('reactContainer', { static: true })
-  private reactContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('reactWindowContainer', { static: true })
+  private reactWindowContainer!: ElementRef<HTMLDivElement>;
 
-  private mountedRemote?: MountedRemote;
+  @ViewChild('reactWindowCollisionContainer', { static: true })
+  private reactWindowCollisionContainer!: ElementRef<HTMLDivElement>;
+
+  private mountedRemotes: MountedRemote[] = [];
   private readonly zone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -55,14 +70,17 @@ export class ReactWindowTabComponent implements AfterViewInit, OnDestroy {
     const custom = event as CustomEvent<RemoteOutput>;
     this.zone.run(() => {
       this.latestOutput = JSON.stringify(custom.detail);
+      this.output.emit(custom.detail);
+      const source = this.readSource(custom.detail);
+      this.eventLog = [`${source}: ${this.latestOutput}`, ...this.eventLog].slice(0, 8);
       this.cdr.detectChanges();
     });
   };
 
   async ngAfterViewInit(): Promise<void> {
     window.addEventListener(REACT_TO_HOST_EVENT, this.onReactOutput as EventListener);
-    await this.mountRemote();
-    this.pushInputToRemote();
+    await this.mountBothRemotes();
+    this.pushInputToRemotes();
   }
 
   onMessageChange(event: Event): void {
@@ -80,7 +98,7 @@ export class ReactWindowTabComponent implements AfterViewInit, OnDestroy {
       ...this.remoteInput,
       type,
     };
-    this.pushInputToRemote();
+    this.pushInputToRemotes();
   }
 
   get currentMessage(): string {
@@ -93,41 +111,56 @@ export class ReactWindowTabComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener(REACT_TO_HOST_EVENT, this.onReactOutput as EventListener);
-    this.mountedRemote?.unmount();
+    this.mountedRemotes.forEach((remote) => remote.unmount());
   }
 
-  private async mountRemote(): Promise<void> {
-    try {
-      const container = await this.loadRemoteContainer();
-      const factory = await container.get('./mount');
-      const remoteModule = factory();
+  private async mountBothRemotes(): Promise<void> {
+    const config = getAppConfig();
 
-      this.mountedRemote = remoteModule.mount(this.reactContainer.nativeElement, {
-        input: this.remoteInput,
-      });
+    try {
+      const mountedPrimary = await this.mountRemoteInto(
+        config.remotes.reactWindowEntry,
+        config.remotes.reactWindowScope,
+        this.reactWindowContainer.nativeElement,
+      );
+      this.mountedRemotes.push(mountedPrimary);
+
+      const mountedCollision = await this.mountRemoteInto(
+        config.remotes.reactWindowCollisionEntry,
+        config.remotes.reactWindowCollisionScope,
+        this.reactWindowCollisionContainer.nativeElement,
+      );
+      this.mountedRemotes.push(mountedCollision);
 
       this.zone.run(() => {
-        this.status = 'React window-event remote mounted';
+        this.status = 'Both remotes mounted on shared channel (collision mode)';
         this.cdr.detectChanges();
       });
     } catch (error) {
       this.zone.run(() => {
-        this.status = 'Failed to load React window-event remote';
+        this.status = 'Failed to load one of the shared-channel remotes';
         this.cdr.detectChanges();
       });
       console.error(error);
     }
   }
 
-  private async loadRemoteContainer(): Promise<FederationContainer> {
-    const config = getAppConfig();
-    await this.injectRemoteEntryScript(config.remotes.reactWindowEntry, config.remotes.reactWindowScope);
-    const container = (window as unknown as Record<string, unknown>)[config.remotes.reactWindowScope] as
-      | FederationContainer
-      | undefined;
+  private async mountRemoteInto(entry: string, scope: string, containerElement: HTMLElement): Promise<MountedRemote> {
+    const container = await this.loadRemoteContainer(entry, scope);
+    const factory = await container.get('./mount');
+    const remoteModule = factory();
+
+    return remoteModule.mount(containerElement, {
+      input: this.remoteInput,
+    });
+  }
+
+  private async loadRemoteContainer(entry: string, scope: string): Promise<FederationContainer> {
+    await this.injectRemoteEntryScript(entry, scope);
+    const container = (window as unknown as Record<string, unknown>)[scope] as FederationContainer | undefined;
 
     if (!container) {
-      throw new Error(`${config.remotes.reactWindowScope} container not found on window`);
+      throw new Error(`${scope} container not found on window`);
     }
 
     if (typeof container.init === 'function') {
@@ -174,11 +207,24 @@ export class ReactWindowTabComponent implements AfterViewInit, OnDestroy {
         ...partialPayload,
       },
     };
-    this.pushInputToRemote();
+    this.pushInputToRemotes();
   }
 
-  private pushInputToRemote(): void {
-    this.mountedRemote?.update?.({ input: this.remoteInput });
+  private pushInputToRemotes(): void {
     window.dispatchEvent(new CustomEvent(HOST_TO_REACT_EVENT, { detail: this.remoteInput }));
+  }
+
+  private readSource(output: RemoteOutput): string {
+    if (!output || typeof output !== 'object') {
+      return 'unknown-source';
+    }
+
+    const payload = output.payload;
+    if (!payload || typeof payload !== 'object') {
+      return 'unknown-source';
+    }
+
+    const source = (payload as Record<string, unknown>)['source'];
+    return typeof source === 'string' && source.trim() ? source : 'unknown-source';
   }
 }

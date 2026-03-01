@@ -1,0 +1,40 @@
+<section class="remote-slot">
+  <h3>React Window Event Collision Demo</h3>
+  <p class="state">{{ status }}</p>
+  <p class="hint">
+    This tab mounts 2 React remotes that use the same event names:
+    <code>mfe:host-to-react-window</code> and <code>mfe:react-window-to-host</code>.
+  </p>
+
+  <label for="collision-msg">Message</label>
+  <input id="collision-msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="collision-tag">Tag</label>
+  <input id="collision-tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+  </div>
+
+  <div class="remote-grid">
+    <article class="remote-card">
+      <h4>Remote A (existing window remote)</h4>
+      <div #reactWindowContainer></div>
+    </article>
+
+    <article class="remote-card">
+      <h4>Remote B (collision remote)</h4>
+      <div #reactWindowCollisionContainer></div>
+    </article>
+  </div>
+
+  <p class="result">Latest shared output in app-root: <strong>{{ latestOutput }}</strong></p>
+
+  <h4>Shared Event Log</h4>
+  <ul class="event-log">
+    @for (entry of eventLog; track entry) {
+      <li>{{ entry }}</li>
+    }
+  </ul>
+</section>

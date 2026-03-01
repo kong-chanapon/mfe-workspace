@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, NgZone, OnDestroy, ViewChild } from '@angular/core';
-import { getAppConfig } from './app-config';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, NgZone, OnDestroy, Output, ViewChild } from '@angular/core';
+import { getAppConfig } from '../../core/runtime-config';
 
 type RemoteInput = {
   type: string;
@@ -13,7 +13,6 @@ type RemoteOutput = {
 
 type MountOptions = {
   input?: RemoteInput;
-  onOutput?: (event: RemoteOutput) => void;
 };
 
 type MountedRemote = {
@@ -33,21 +32,35 @@ type FederationContainer = {
   get: (module: string) => Promise<() => Promise<VueRemoteModule | MountFn> | VueRemoteModule | MountFn>;
 };
 
+const HOST_TO_VUE_EVENT = 'mfe:host-to-vue-window';
+const VUE_TO_HOST_EVENT = 'mfe:vue-window-to-host';
+
 @Component({
-  selector: 'app-vue-remote-tab',
-  templateUrl: './vue-remote-tab.component.html',
-  styleUrl: './vue-remote-tab.component.css',
+  selector: 'app-mfe-vue-window-tab',
+  templateUrl: './vue-window-tab.component.html',
+  styleUrl: './vue-window-tab.component.css',
 })
-export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
-  remoteInput: RemoteInput = {
+export class MfeVueWindowTabComponent implements AfterViewInit, OnDestroy {
+  private remoteInput: RemoteInput = {
     type: 'set-context',
     payload: {
       message: 'hello from angular host',
-      tag: 'angular-to-vue',
+      tag: 'angular-to-vue-window',
     },
   };
+
+  @Output() output = new EventEmitter<RemoteOutput>();
+
+  @Input('input') set input(value: RemoteInput) {
+    if (!value) {
+      return;
+    }
+    this.remoteInput = value;
+    this.pushInputToRemote();
+  }
+
   latestOutput = 'waiting output...';
-  status = 'Loading Vue remote...';
+  status = 'Loading Vue window-event remote...';
 
   @ViewChild('vueContainer', { static: true })
   private vueContainer!: ElementRef<HTMLDivElement>;
@@ -57,8 +70,20 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
   private readonly zone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  private readonly onVueOutput = (event: Event): void => {
+    const custom = event as CustomEvent<RemoteOutput>;
+
+    this.zone.run(() => {
+      this.latestOutput = JSON.stringify(custom.detail);
+      this.output.emit(custom.detail);
+      this.cdr.detectChanges();
+    });
+  };
+
   async ngAfterViewInit(): Promise<void> {
+    window.addEventListener(VUE_TO_HOST_EVENT, this.onVueOutput as EventListener);
     await this.mountRemote();
+    this.pushInputToRemote();
   }
 
   onMessageChange(event: Event): void {
@@ -88,6 +113,7 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    window.removeEventListener(VUE_TO_HOST_EVENT, this.onVueOutput as EventListener);
     this.mountedRemote?.unmount();
   }
 
@@ -100,21 +126,15 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
 
       this.mountedRemote = mount(this.vueContainer.nativeElement, {
         input: this.remoteInput,
-        onOutput: (event: RemoteOutput) => {
-          this.zone.run(() => {
-            this.latestOutput = JSON.stringify(event);
-            this.cdr.detectChanges();
-          });
-        },
       });
 
       this.zone.run(() => {
-        this.status = 'Vue remote mounted from Module Federation';
+        this.status = 'Vue window-event remote mounted from Module Federation';
         this.cdr.detectChanges();
       });
     } catch (error) {
       this.zone.run(() => {
-        this.status = 'Failed to load Vue remote';
+        this.status = 'Failed to load Vue window-event remote';
         this.cdr.detectChanges();
       });
       console.error(error);
@@ -126,11 +146,11 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
       this.remoteContainerPromise = (async () => {
         const config = getAppConfig();
         const dynamicImport = new Function('u', 'return import(u)') as (url: string) => Promise<unknown>;
-        const entryModule = (await dynamicImport(config.remotes.vueEntry)) as FederationContainer;
+        const entryModule = (await dynamicImport(config.remotes.vueWindowEntry)) as FederationContainer;
 
         const container = (entryModule as unknown as { default?: FederationContainer }).default ?? entryModule;
         if (!container || typeof container.get !== 'function') {
-          throw new Error('Invalid vue federation container');
+          throw new Error('Invalid vue window federation container');
         }
 
         if (typeof container.init === 'function') {
@@ -161,6 +181,7 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
 
   private pushInputToRemote(): void {
     this.mountedRemote?.update({ input: this.remoteInput });
+    window.dispatchEvent(new CustomEvent(HOST_TO_VUE_EVENT, { detail: this.remoteInput }));
   }
 
   private resolveMountFunction(remoteModule: VueRemoteModule | MountFn): MountFn {
@@ -180,6 +201,6 @@ export class VueRemoteTabComponent implements AfterViewInit, OnDestroy {
       return fallback.mount;
     }
 
-    throw new Error('Vue remote does not expose a valid mount function');
+    throw new Error('Vue window remote does not expose a valid mount function');
   }
 }

@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+.remote-slot {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f9fafb;
+  min-height: 180px;
+}
+
+.state {
+  margin-top: 0;
+  color: #4b5563;
+}
