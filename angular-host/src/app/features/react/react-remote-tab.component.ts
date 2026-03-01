@@ -151,7 +151,7 @@ export class MfeReactRemoteTabComponent implements AfterViewInit, OnDestroy {
 
   private injectRemoteEntryScript(src: string, scope: string): Promise<void> {
     // กันการ inject script ซ้ำ โดยอิง scope ของ remote
-    const existing = document.querySelector(`script[data-remote-scope="${scope}"]`) as HTMLScriptElement | null;
+    const existing = document.querySelector(`script[data-remote-scope=\"${scope}\"]`) as HTMLScriptElement | null;
     if (existing) {
       // ถ้า container ถูกประกาศบน window แล้ว แปลว่า remote พร้อมใช้ทันที
       if ((window as unknown as Record<string, unknown>)[scope]) {

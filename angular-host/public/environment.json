@@ -8,6 +8,7 @@
     "reactWindowScope": "reactWindowRemote",
     "reactWindowCollisionEntry": "http://localhost:4303/remoteEntry.js",
     "reactWindowCollisionScope": "reactWindowCollisionRemote",
+    "reactAxElementEntry": "http://localhost:4305/ma-react-ax-remote.js",
     "vueEntry": "http://localhost:4302/assets/remoteEntry.js",
     "vueWindowEntry": "http://localhost:4304/assets/remoteEntry.js"
   }

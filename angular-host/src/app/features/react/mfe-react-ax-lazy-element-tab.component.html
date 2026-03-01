@@ -1,0 +1,33 @@
+<section class="remote-slot">
+  <h3>React Remote via *axLazyElement</h3>
+  <p class="state">{{ status }}</p>
+
+  <label for="react-ax-msg">Message</label>
+  <input id="react-ax-msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="react-ax-tag">Tag</label>
+  <input id="react-ax-tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+    <button type="button" (click)="forceRemoteRefresh()">call remote.refresh()</button>
+  </div>
+
+  <ma-react-ax-remote
+    #remoteElement
+    *axLazyElement="remoteUrl; loadingTemplate: loadingView; errorTemplate: errorView; loadingSuccess: onLazyLoaded; loadingError: onLazyError"
+    [input]="remoteInput"
+    (remoteOutput)="onRemoteOutput($event)"
+  ></ma-react-ax-remote>
+
+  <ng-template #loadingView>
+    <p class="state">Loading React script by *axLazyElement ...</p>
+  </ng-template>
+
+  <ng-template #errorView>
+    <p class="error">Cannot load React remote script from {{ remoteUrl }}</p>
+  </ng-template>
+
+  <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
+</section>

@@ -1,0 +1,20 @@
+<section class="remote-slot">
+  <h3>Web Component Runtime Remote (No Module Federation)</h3>
+  <p class="state">{{ status }}</p>
+
+  <label for="wc-msg">Message</label>
+  <input id="wc-msg" [value]="currentMessage" (input)="onMessageChange($event)" />
+
+  <label for="wc-tag">Tag</label>
+  <input id="wc-tag" [value]="currentTag" (input)="onTagChange($event)" />
+
+  <div class="actions">
+    <button type="button" (click)="setInputType('set-context')">type = set-context</button>
+    <button type="button" (click)="setInputType('refresh')">type = refresh</button>
+    <button type="button" (click)="forceRemoteRefresh()">call remote.refresh()</button>
+  </div>
+
+  <ma-demo-web-remote #remoteElement></ma-demo-web-remote>
+
+  <p class="result">Output received in app-root: <strong>{{ latestOutput }}</strong></p>
+</section>

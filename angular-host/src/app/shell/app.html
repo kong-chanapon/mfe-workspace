@@ -2,18 +2,43 @@
   <h1>Host App</h1>
   <p>Angular Micro-Frontend (Native Federation)</p>
 
-  <nav class="tabs">
-    <button type="button" class="tab" [class.active]="activeTab === 'mfe1'" (click)="setActiveTab('mfe1')">MFE1</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'mfe2'" (click)="setActiveTab('mfe2')">MFE2</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'selector'" (click)="setActiveTab('selector')">Selector I/O</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'react'" (click)="setActiveTab('react')">React Props</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'react-window'" (click)="setActiveTab('react-window')">React Window</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'react-window-collision'" (click)="setActiveTab('react-window-collision')">
-      React Window Collision
-    </button>
-    <button type="button" class="tab" [class.active]="activeTab === 'vue'" (click)="setActiveTab('vue')">Vue</button>
-    <button type="button" class="tab" [class.active]="activeTab === 'vue-window'" (click)="setActiveTab('vue-window')">Vue Window</button>
-  </nav>
+  <section class="tab-groups">
+    <article class="tab-group">
+      <h3>Module Federation</h3>
+      <p class="group-note">Angular/React/Vue remotes ที่โหลดผ่าน federation container หรือ remote entry</p>
+      <nav class="tabs">
+        <button type="button" class="tab" [class.active]="activeTab === 'mfe1'" (click)="setActiveTab('mfe1')">MFE1</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'mfe2'" (click)="setActiveTab('mfe2')">MFE2</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'selector'" (click)="setActiveTab('selector')">Selector I/O</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'react'" (click)="setActiveTab('react')">React Props</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'react-window'" (click)="setActiveTab('react-window')">React Window</button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeTab === 'react-window-collision'"
+          (click)="setActiveTab('react-window-collision')"
+        >
+          React Window Collision
+        </button>
+        <button type="button" class="tab" [class.active]="activeTab === 'vue'" (click)="setActiveTab('vue')">Vue</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'vue-window'" (click)="setActiveTab('vue-window')">Vue Window</button>
+      </nav>
+    </article>
+
+    <article class="tab-group">
+      <h3>Web Component Runtime</h3>
+      <p class="group-note">Remotes ที่ expose เป็น custom element และ host เรียกผ่าน DOM/API หรือ *axLazyElement</p>
+      <nav class="tabs">
+        <button type="button" class="tab" [class.active]="activeTab === 'react-ax-lazy'" (click)="setActiveTab('react-ax-lazy')">
+          React (axLazyElement)
+        </button>
+        <button type="button" class="tab" [class.active]="activeTab === 'web-component'" (click)="setActiveTab('web-component')">Web Component</button>
+        <button type="button" class="tab" [class.active]="activeTab === 'web-component-ax'" (click)="setActiveTab('web-component-ax')">
+          Web Component (axLazyElement)
+        </button>
+      </nav>
+    </article>
+  </section>
 
   @switch (activeTab) {
     @case ('mfe1') {
@@ -53,12 +78,36 @@
       ></app-mfe-react-window-collision-tab>
     }
 
+    @case ('react-ax-lazy') {
+      <app-mfe-react-ax-lazy-element-tab [input]="reactAxLazyInput" (output)="onReactAxLazyOutput($event)"></app-mfe-react-ax-lazy-element-tab>
+    }
+
     @case ('vue') {
       <app-mfe-vue-remote-tab [input]="vueInput" (output)="onVueOutput($event)"></app-mfe-vue-remote-tab>
     }
 
-    @default {
+    @case ('vue-window') {
       <app-mfe-vue-window-tab [input]="vueWindowInput" (output)="onVueWindowOutput($event)"></app-mfe-vue-window-tab>
+    }
+
+    @case ('web-component') {
+      <app-mfe-web-component-tab [input]="webComponentInput" (output)="onWebComponentOutput($event)"></app-mfe-web-component-tab>
+    }
+
+    @case ('web-component-ax') {
+      <app-mfe-ax-lazy-element-tab
+        [input]="webComponentAxInput"
+        (output)="onWebComponentAxOutput($event)"
+      ></app-mfe-ax-lazy-element-tab>
+    }
+
+    @default {
+      <app-mfe-angular-remote-view
+        remoteName="mfe1"
+        title="Angular Remote: MFE1"
+        [input]="mfe1Input"
+        (output)="onMfe1Output($event)"
+      ></app-mfe-angular-remote-view>
     }
   }
 
@@ -70,7 +119,10 @@
     <p><strong>React props:</strong> {{ reactOutput }}</p>
     <p><strong>React window:</strong> {{ reactWindowOutput }}</p>
     <p><strong>React window collision:</strong> {{ reactWindowCollisionOutput }}</p>
+    <p><strong>React ax lazy:</strong> {{ reactAxLazyOutput }}</p>
     <p><strong>Vue:</strong> {{ vueOutput }}</p>
     <p><strong>Vue window:</strong> {{ vueWindowOutput }}</p>
+    <p><strong>Web component:</strong> {{ webComponentOutput }}</p>
+    <p><strong>Web component ax:</strong> {{ webComponentAxOutput }}</p>
   </section>
 </div>

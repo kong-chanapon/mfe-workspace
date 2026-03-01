@@ -16,5 +16,10 @@
     "port": 4303,
     "scope": "reactWindowCollisionRemote",
     "remoteEntryFilename": "remoteEntry.js"
+  },
+  "axElement": {
+    "publicPath": "http://localhost:4305/",
+    "port": 4305,
+    "scriptFilename": "ma-react-ax-remote.js"
   }
 }

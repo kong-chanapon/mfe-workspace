@@ -5,7 +5,7 @@
 }
 
 .shell {
-  max-width: 900px;
+  max-width: 980px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -19,11 +19,33 @@ p {
   color: #4b5563;
 }
 
+.tab-groups {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.tab-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  padding: 0.75rem;
+}
+
+.tab-group h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.group-note {
+  margin: 0.25rem 0 0.6rem;
+  font-size: 0.9rem;
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1rem 0;
 }
 
 .tab {

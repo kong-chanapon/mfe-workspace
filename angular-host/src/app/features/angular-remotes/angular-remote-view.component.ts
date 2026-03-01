@@ -1,12 +1,12 @@
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import {
-  AfterViewInit,
   Component,
   ComponentRef,
   EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild,
@@ -29,13 +29,14 @@ type RemoteOutput = {
   templateUrl: './angular-remote-view.component.html',
   styleUrl: './angular-remote-view.component.css',
 })
-export class MfeAngularRemoteViewComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class MfeAngularRemoteViewComponent implements OnInit, OnChanges, OnDestroy {
   @Input() remoteName = 'mfe1';
   @Input() title = 'Angular Remote';
   @Input() input: RemoteInput = {
     type: 'set-context',
     payload: { message: 'hello from host', tag: 'angular-remote-view' },
   };
+
   @Output() output = new EventEmitter<RemoteOutput>();
 
   loadState = 'Loading remote...';
@@ -47,7 +48,7 @@ export class MfeAngularRemoteViewComponent implements AfterViewInit, OnChanges, 
   private outputSub?: Subscription;
   private viewReady = false;
 
-  async ngAfterViewInit(): Promise<void> {
+  async ngOnInit(): Promise<void> {
     this.viewReady = true;
     await this.loadRemote();
   }

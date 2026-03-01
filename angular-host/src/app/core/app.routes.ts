@@ -33,12 +33,27 @@ export const routes: Routes = [
       import('../features/react/react-window-collision-tab.component').then((m) => m.MfeReactWindowCollisionTabComponent),
   },
   {
+    path: 'react-ax-lazy-element',
+    loadComponent: () =>
+      import('../features/react/mfe-react-ax-lazy-element-tab.component').then((m) => m.MfeReactAxLazyElementTabComponent),
+  },
+  {
     path: 'vue-remote',
     loadComponent: () => import('../features/vue/vue-remote-tab.component').then((m) => m.MfeVueRemoteTabComponent),
   },
   {
     path: 'vue-window-remote',
     loadComponent: () => import('../features/vue/vue-window-tab.component').then((m) => m.MfeVueWindowTabComponent),
+  },
+  {
+    path: 'web-component-runtime',
+    loadComponent: () =>
+      import('../features/web-components/mfe-web-component-tab.component').then((m) => m.MfeWebComponentTabComponent),
+  },
+  {
+    path: 'web-component-ax-runtime',
+    loadComponent: () =>
+      import('../features/web-components-ax/mfe-ax-lazy-element-tab.component').then((m) => m.MfeAxLazyElementTabComponent),
   },
   {
     path: '**',

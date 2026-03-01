@@ -8,6 +8,7 @@ export type AppRuntimeConfig = {
     reactWindowScope: string;
     reactWindowCollisionEntry: string;
     reactWindowCollisionScope: string;
+    reactAxElementEntry: string;
     vueEntry: string;
     vueWindowEntry: string;
   };
@@ -23,6 +24,7 @@ export const DEFAULT_APP_CONFIG: AppRuntimeConfig = {
     reactWindowScope: 'reactWindowRemote',
     reactWindowCollisionEntry: 'http://localhost:4303/remoteEntry.js',
     reactWindowCollisionScope: 'reactWindowCollisionRemote',
+    reactAxElementEntry: 'http://localhost:4305/ma-react-ax-remote.js',
     vueEntry: 'http://localhost:4302/assets/remoteEntry.js',
     vueWindowEntry: 'http://localhost:4304/assets/remoteEntry.js',
   },
@@ -58,6 +60,7 @@ export const normalizeAppConfig = (value: unknown): AppRuntimeConfig => {
         remotes['reactWindowCollisionScope'],
         DEFAULT_APP_CONFIG.remotes.reactWindowCollisionScope,
       ),
+      reactAxElementEntry: readString(remotes['reactAxElementEntry'], DEFAULT_APP_CONFIG.remotes.reactAxElementEntry),
       vueEntry: readString(remotes['vueEntry'], DEFAULT_APP_CONFIG.remotes.vueEntry),
       vueWindowEntry: readString(remotes['vueWindowEntry'], DEFAULT_APP_CONFIG.remotes.vueWindowEntry),
     },
